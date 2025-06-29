@@ -1,3 +1,4 @@
+import { Badge } from '@/components/ui/badge';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +9,8 @@ import { PencilIcon } from 'lucide-react';
 import Link from 'next/link';
 import numeral from 'numeral';
 import { z } from 'zod';
+import Filters from './filters';
+import { getTransactionYearsRange } from '@/data/getTransactionYearsRange';
 
 const today = new Date();
 
@@ -33,6 +36,8 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
 
   const transactions = await getTransactionsByMonth({ month, year });
 
+  const yearsRange = await getTransactionYearsRange();
+
   return (
     <div className="max-w-screen-xl mx-auto py-10">
       <Breadcrumb>
@@ -52,7 +57,9 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
         <CardHeader>
           <CardTitle className="flex justify-between">
             <span>{format(selectedDate, 'MMM yyyy')} Transactions</span>
-            <div>dropdowns</div>
+            <div>
+              <Filters year={year} month={month} yearsRange={yearsRange} />
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -77,8 +84,10 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
                   <TableRow key={transaction.id}>
                     <TableCell>{format(transaction.transactionDate, 'do MMM yyyy')}</TableCell>
                     <TableCell>{transaction.description}</TableCell>
-                    <TableCell>{transaction.categoryId}</TableCell>
-                    <TableCell>{transaction.categoryId}</TableCell>
+                    <TableCell className="capitalize">
+                      <Badge className={transaction.transactionType === 'income' ? 'bg-lime-500' : 'bg-orange-500'}>{transaction.transactionType}</Badge>
+                    </TableCell>
+                    <TableCell>{transaction.category}</TableCell>
                     <TableCell>${numeral(transaction.amount).format('0,0[.]00')}</TableCell>
                     <TableCell className="text-right">
                       <Button asChild variant="outline" size="icon" aria-label="Edit transaction">
