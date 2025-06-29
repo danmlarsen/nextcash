@@ -1,61 +1,50 @@
-"use client";
+'use client';
 
-import { addDays, format } from "date-fns";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "./ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { Button } from "./ui/button";
-import { CalendarIcon } from "lucide-react";
-import { Calendar } from "./ui/calendar";
-import { Input } from "./ui/input";
+import { addDays, format } from 'date-fns';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Button } from './ui/button';
+import { CalendarIcon } from 'lucide-react';
+import { Calendar } from './ui/calendar';
+import { Input } from './ui/input';
+import { type TCategory } from '@/types/category';
 
-const transactionFormSchema = z.object({
-  transactionType: z.enum(["income", "expense"]),
-  categoryId: z.coerce.number().positive("Please select a category"),
-  transactionDate: z.coerce
-    .date()
-    .max(addDays(new Date(), 1), "Transaction date cannot be in the future"),
-  amount: z.coerce.number().positive("Amount must be greater than 0"),
-  description: z
-    .string()
-    .min(3, "Description must contain at least 3 characters")
-    .max(300, "Description must contain a maximum of 300 characters"),
+export const transactionFormSchema = z.object({
+  transactionType: z.enum(['income', 'expense']),
+  categoryId: z.coerce.number().positive('Please select a category'),
+  transactionDate: z.coerce.date().max(addDays(new Date(), 1), 'Transaction date cannot be in the future'),
+  amount: z.coerce.number().positive('Amount must be greater than 0'),
+  description: z.string().min(3, 'Description must contain at least 3 characters').max(300, 'Description must contain a maximum of 300 characters'),
 });
 
-export default function TransactionForm() {
+type TProps = {
+  categories: TCategory[];
+  onSubmit: (data: z.infer<typeof transactionFormSchema>) => Promise<void>;
+};
+
+export default function TransactionForm({ categories, onSubmit }: TProps) {
   const form = useForm<z.infer<typeof transactionFormSchema>>({
     resolver: zodResolver(transactionFormSchema),
     defaultValues: {
-      transactionType: "income",
+      transactionType: 'income',
       categoryId: 0,
       transactionDate: new Date(),
       amount: 0,
-      description: "",
+      description: '',
     },
   });
 
-  async function handleSubmit(data: z.infer<typeof transactionFormSchema>) {}
+  const transactionType = form.watch('transactionType');
+  const filteredCategories = categories.filter(category => category.type === transactionType);
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)}>
-        <fieldset className="grid grid-cols-2 gap-y-5 gap-x-2">
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <fieldset className="grid grid-cols-2 gap-y-5 gap-x-2" disabled={form.formState.isSubmitting}>
           <FormField
             control={form.control}
             name="transactionType"
@@ -63,7 +52,13 @@ export default function TransactionForm() {
               <FormItem>
                 <FormLabel>Transaction Type</FormLabel>
                 <FormControl>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select
+                    onValueChange={newValue => {
+                      field.onChange(newValue);
+                      form.setValue('categoryId', 0);
+                    }}
+                    value={field.value}
+                  >
                     <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
@@ -84,14 +79,17 @@ export default function TransactionForm() {
               <FormItem>
                 <FormLabel>Category</FormLabel>
                 <FormControl>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value.toString()}
-                  >
+                  <Select onValueChange={field.onChange} value={field.value.toString()}>
                     <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent></SelectContent>
+                    <SelectContent>
+                      {filteredCategories.map(category => (
+                        <SelectItem key={category.id} value={category.id.toString()}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                 </FormControl>
                 <FormMessage />
@@ -113,11 +111,7 @@ export default function TransactionForm() {
                         className="data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal"
                       >
                         <CalendarIcon />
-                        {field.value ? (
-                          format(field.value, "PPP")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
+                        {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
@@ -150,7 +144,7 @@ export default function TransactionForm() {
             )}
           />
         </fieldset>
-        <fieldset className="mt-5 flex flex-col gap-5">
+        <fieldset className="mt-5 flex flex-col gap-5" disabled={form.formState.isSubmitting}>
           <FormField
             control={form.control}
             name="description"
