@@ -26,7 +26,11 @@ export default async function RecentTransactions() {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {!transactions?.length && <p className="text-center py-10 text-muted-foreground text-lg">There are no transactions for this month</p>}
+        {!transactions?.length && (
+          <p className="text-center py-10 text-muted-foreground text-lg">
+            You have no transactions yet. Start by hitting "Create New" to create your first transaction
+          </p>
+        )}
         {!!transactions?.length && (
           <Table className="mt-4">
             <TableHeader>
