@@ -28,7 +28,7 @@ export default async function RecentTransactions() {
       <CardContent>
         {!transactions?.length && (
           <p className="text-center py-10 text-muted-foreground text-lg">
-            You have no transactions yet. Start by hitting "Create New" to create your first transaction
+            You have no transactions yet. Start by hitting &quot;Create New&quot; to create your first transaction
           </p>
         )}
         {!!transactions?.length && (
