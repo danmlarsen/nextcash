@@ -37,5 +37,5 @@ export async function getAnnualCashflow(year: number) {
     });
   }
 
-  console.log(annualCashflow);
+  return annualCashflow;
 }
